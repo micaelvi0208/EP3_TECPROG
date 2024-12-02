@@ -14,22 +14,6 @@ TETROMINOES = {
 }
 
 
-class bloco:
-    def __init__(self, x, y, simbolo):
-        self.x = x
-        self.y = y
-        self.simbolo = simbolo
-
-    def atualizaPosicao(self, prox_x, prox_y):
-        self.x = prox_x
-        self.y = prox_y
-
-    def temColisao(self, lim_v, lim_h):
-        if 0 <= self.x < lim_h and self.y < lim_v:
-            return False
-        return True
-
-
 class Peca:
     def __init__(self, colunas):
         self.forma = random.choice(list(TETROMINOES.keys()))
@@ -69,7 +53,57 @@ class Peca:
             x_pos = self.x + dx
             y_pos = self.y + dy
             tabuleiro[y_pos][x_pos] = ' '
-   
+    
+    def podeMover(self, tabuleiro, dx, dy):
+        # Obtém as coordenadas relativas da peça
+        coord = TETROMINOES[self.forma]
+        for dx_, dy_ in coord:
+            x_pos = self.x + dx + dx_
+            y_pos = self.y + dy + dy_
+
+            # Verifica limites do tabuleiro
+            if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos >= len(tabuleiro):
+                return False
+
+            # Verifica colisão com blocos já fixados no tabuleiro
+            if y_pos >= 0 and tabuleiro[y_pos][x_pos] != ' ':  # Ignora as partes fora do tabuleiro acima
+                # Garante que o bloco atual não seja visto como obstáculo
+                if (x_pos, y_pos) not in [(self.x + dx_, self.y + dy_) for dx_, dy_ in coord]:
+                    return False
+        return True
+    
+    def rotacionar(self, tabuleiro, sentido_horario=True):
+        if self.forma == 'O':  # O não precisa rotacionar
+            return
+    
+        # Calcular novas coordenadas para a rotação
+        novas_coordenadas = []
+        for dx, dy in TETROMINOES[self.forma]:
+            if sentido_horario:
+                novas_coordenadas.append((-dy, dx))  # Rotação no sentido horário
+            else:
+                novas_coordenadas.append((dy, -dx))  # Rotação no sentido anti-horário)
+    
+        # Validar se a rotação é possível
+        for dx, dy in novas_coordenadas:
+            x_pos = self.x + dx
+            y_pos = self.y + dy
+        
+            # Verificar limites do tabuleiro
+            if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos < 0 or y_pos >= len(tabuleiro):
+                return  # Rotação inválida
+        
+            # Verificar colisão com peças já fixas no tabuleiro
+            if tabuleiro[y_pos][x_pos] != ' ':
+                return  # Rotação inválida
+
+            # Apagar a posição anterior da peça no tabuleiro
+            self.apagaAnterior(tabuleiro)
+
+            # Atualizar as coordenadas da peça com a rotação válida
+            TETROMINOES[self.forma] = novas_coordenadas
+            self.posicionarTabuleiro(tabuleiro)
+
 
 class Partida:
     def __init__(self, linhas, colunas, jogador):
@@ -79,33 +113,49 @@ class Partida:
         self.jogador = jogador
         self.peca_atual = Peca(colunas)
         self.jogo_ativo = True
+        self.pontuacao = 0
 
     def jogar(self):
         #self.peca_atual = self.gerar_peca()
         while self.jogo_ativo:
             Tela.limpar_tela()  # Limpa a tela antes de exibir a atualização
             self.peca_atual.posicionarTabuleiro(self.grade)
-            Tela.exibir(self.grade, 0)
+            Tela.exibir(self.grade, self.pontuacao)
         
             tecla = readkey()
             if tecla == 's':
                 break
             elif tecla == key.DOWN:
-                self.peca_atual.moverPeca(self.grade, 0, 1)
+                if self.peca_atual.podeMover(self.grade, 0, 1):
+                    self.peca_atual.moverPeca(self.grade, 0, 1)
             elif tecla == key.RIGHT:
-                self.peca_atual.moverPeca(self.grade, 1, 0)
+                if self.peca_atual.podeMover(self.grade, 1, 0):
+                    self.peca_atual.moverPeca(self.grade, 1, 0)
             elif tecla == key.LEFT:
-                self.peca_atual.moverPeca(self.grade, -1, 0)
-            elif tecla == key.PGUP:
-                print("Rotaciona horário")
-            elif tecla == key.PGDN:
-                print("Rotaciona antihorário")
-            elif tecla == key.PGUP:
-                print("Rotaciona horário")
+                if self.peca_atual.podeMover(self.grade, -1, 0):
+                    self.peca_atual.moverPeca(self.grade, -1, 0)
+            elif tecla == key.PAGE_UP:
+                self.peca_atual.rotacionar(self.grade, sentido_horario=True)
+            elif tecla == key.PAGE_DOWN:
+                self.peca_atual.rotacionar(self.grade, sentido_horario=False)
             elif tecla == 'g':
                 print("grava e sai")
             else:
                 continue
+            if not self.peca_atual.podeMover(self.grade, 0, 1):
+                self.peca_atual.posicionarTabuleiro(self.grade)
+                linhas_removidas = self.removerLinhas()
+                self.pontuacao += linhas_removidas * 100
+                self.peca_atual = Peca(self.colunas)
+            if not self.peca_atual.podeMover(self.grade, 0, 0):
+                self.jogo_ativo = False
+                print("Game Over!")
+    
+    def removerLinhas(self):
+        novas_linhas = [linha for linha in self.grade if " " in linha]
+        linhas_removidas = len(self.grade) - len(novas_linhas)
+        self.grade = [[" " for _ in range(self.colunas)] for _ in range(linhas_removidas)] + novas_linhas
+        return linhas_removidas
 
 
 class Tela:
