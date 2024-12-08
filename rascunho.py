@@ -39,7 +39,13 @@ class Peca:
         for dx, dy in coord:
             x_pos = self.x + dx
             y_pos = self.y + dy
+            if tabuleiro[y_pos][x_pos] != ' ':
+                return False
+        for dx, dy in coord:
+            x_pos = self.x + dx
+            y_pos = self.y + dy
             tabuleiro[y_pos][x_pos] = self.simbolo
+        return True
 
     def moverPeca(self,tabuleiro,dx,dy):
         self.apagaAnterior(tabuleiro)
@@ -55,9 +61,11 @@ class Peca:
             tabuleiro[y_pos][x_pos] = ' '
     
     def podeMover(self, tabuleiro, dx, dy):
-        # Obtém as coordenadas relativas da peça
-        coord = TETROMINOES[self.forma]
-        for dx_, dy_ in coord:
+        # Coordenadas da peça atual
+        coord_atual = TETROMINOES[self.forma]
+
+        # Verificar a nova posição
+        for dx_, dy_ in coord_atual:
             x_pos = self.x + dx + dx_
             y_pos = self.y + dy + dy_
 
@@ -65,11 +73,16 @@ class Peca:
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos >= len(tabuleiro):
                 return False
 
-            # Verifica colisão com blocos já fixados no tabuleiro
-            if y_pos >= 0 and tabuleiro[y_pos][x_pos] != ' ':  # Ignora as partes fora do tabuleiro acima
-                # Garante que o bloco atual não seja visto como obstáculo
-                if (x_pos, y_pos) not in [(self.x + dx_, self.y + dy_) for dx_, dy_ in coord]:
+            # Ignora verificações para partes fora do tabuleiro (acima)
+            if y_pos < 0:
+                continue
+
+            # Verifica colisões com peças fixadas no tabuleiro
+            if tabuleiro[y_pos][x_pos] != ' ':
+                # Garante que a posição atual da peça não seja considerada como obstáculo
+                if (x_pos, y_pos) not in [(self.x + dx_, self.y + dy_) for dx_, dy_ in coord_atual]:
                     return False
+
         return True
     
     def rotacionar(self, tabuleiro, sentido_horario=True):
@@ -119,37 +132,46 @@ class Partida:
         #self.peca_atual = self.gerar_peca()
         while self.jogo_ativo:
             Tela.limpar_tela()  # Limpa a tela antes de exibir a atualização
-            self.peca_atual.posicionarTabuleiro(self.grade)
+
+            if not self.peca_atual.posicionarTabuleiro(self.grade):
+                self.jogo_ativo = False
+                Tela.limpar_tela()
+                Tela.exibir(self.grade, self.pontuacao)
+                print("Game Over!")
+                return
+
+            
             Tela.exibir(self.grade, self.pontuacao)
         
-            tecla = readkey()
-            if tecla == 's':
-                break
-            elif tecla == key.DOWN:
-                if self.peca_atual.podeMover(self.grade, 0, 1):
-                    self.peca_atual.moverPeca(self.grade, 0, 1)
-            elif tecla == key.RIGHT:
-                if self.peca_atual.podeMover(self.grade, 1, 0):
-                    self.peca_atual.moverPeca(self.grade, 1, 0)
-            elif tecla == key.LEFT:
-                if self.peca_atual.podeMover(self.grade, -1, 0):
-                    self.peca_atual.moverPeca(self.grade, -1, 0)
-            elif tecla == key.PAGE_UP:
-                self.peca_atual.rotacionar(self.grade, sentido_horario=True)
-            elif tecla == key.PAGE_DOWN:
-                self.peca_atual.rotacionar(self.grade, sentido_horario=False)
-            elif tecla == 'g':
-                print("grava e sai")
-            else:
-                continue
-            if not self.peca_atual.podeMover(self.grade, 0, 1):
-                self.peca_atual.posicionarTabuleiro(self.grade)
-                linhas_removidas = self.removerLinhas()
-                self.pontuacao += linhas_removidas * 100
-                self.peca_atual = Peca(self.colunas)
-            if not self.peca_atual.podeMover(self.grade, 0, 0):
-                self.jogo_ativo = False
-                print("Game Over!")
+            while self.peca_atual.podeMover(self.grade, 0, 1):
+                tecla = readkey()
+                if tecla == 's':
+                    break
+                elif tecla == key.DOWN:
+                    if self.peca_atual.podeMover(self.grade, 0, 1):
+                        self.peca_atual.moverPeca(self.grade, 0, 1)
+                elif tecla == key.RIGHT:
+                    if self.peca_atual.podeMover(self.grade, 1, 0):
+                        self.peca_atual.moverPeca(self.grade, 1, 0)
+                elif tecla == key.LEFT:
+                    if self.peca_atual.podeMover(self.grade, -1, 0):
+                        self.peca_atual.moverPeca(self.grade, -1, 0)
+                elif tecla == key.PAGE_UP:
+                    self.peca_atual.rotacionar(self.grade, sentido_horario=True)
+                elif tecla == key.PAGE_DOWN:
+                    self.peca_atual.rotacionar(self.grade, sentido_horario=False)
+                elif tecla == 'g':
+                    print("grava e sai")
+                else:
+                    continue
+                Tela.limpar_tela()
+                Tela.exibir(self.grade, self.pontuacao)
+
+                if not self.peca_atual.podeMover(self.grade, 0, 1):
+                    self.peca_atual.posicionarTabuleiro(self.grade)
+                    linhas_removidas = self.removerLinhas()
+                    self.pontuacao += linhas_removidas * 100
+                    self.peca_atual = Peca(self.colunas)
     
     def removerLinhas(self):
         novas_linhas = [linha for linha in self.grade if " " in linha]
