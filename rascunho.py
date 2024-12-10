@@ -97,6 +97,7 @@ class Peca:
             else:
                 novas_coordenadas.append((dy, -dx))  # Rotação no sentido anti-horário)
 
+        backup = novas_coordenadas
         # Validar se a rotação é possível
         for dx, dy in novas_coordenadas:
             x_pos = self.x + dx
@@ -116,6 +117,7 @@ class Peca:
             # Atualizar as coordenadas da peça com a rotação válida
             TETROMINOES[self.forma] = novas_coordenadas
             self.posicionarTabuleiro(tabuleiro)
+            TETROMINOES[self.forma] = backup
 
 
 class Partida:
@@ -138,16 +140,15 @@ class Partida:
                 Tela.limpar_tela()
                 Tela.exibir(self.grade, self.pontuacao)
                 print("Game Over!")
-                return
+                return self.pontuacao
 
             
             Tela.exibir(self.grade, self.pontuacao)
 
-            sair = False
-            while self.peca_atual.podeMover(self.grade, 0, 1) and sair == False:
+            while self.peca_atual.podeMover(self.grade, 0, 1):
                 tecla = readkey()
                 if tecla == 's':
-                    sair = True
+                    return self.pontuacao
                 elif tecla == key.DOWN:
                     if self.peca_atual.podeMover(self.grade, 0, 1):
                         self.peca_atual.moverPeca(self.grade, 0, 1)
@@ -164,7 +165,7 @@ class Partida:
                 elif tecla == 'g':
                     self.peca_atual.apagaAnterior(self.grade)
                     self.salvar_jogo()
-                    sair = True
+                    return self.pontuacao
                 else:
                     continue
                 Tela.limpar_tela()
@@ -188,6 +189,7 @@ class Partida:
             for linha in self.grade:
                 f.write("".join(linha) + "\n")
 
+
 class Tela:
     @staticmethod
     def limpar_tela():
@@ -206,7 +208,124 @@ class Tela:
         print("<s> sai da partida, <g> grava e sai da partida")
         
 
+class Jogo:
+    def __init__(self):
+        self.ranking = Ranking()
+    
+    def menu(self):
+        while True:
+            Tela.limpar_tela()  # Limpa a tela antes de exibir o menu
+            print("*** Jogo Textris - um Tetris em modo texto ***")
+            print("Opções do jogo:")
+            print("- <i> para iniciar uma nova partida")
+            print("- <c> para carregar uma partida gravada e continuá-la")
+            print("- <p> para ver as 10 melhores pontuações")
+            print("- <s> para sair do jogo")
+            opcao = input("Digite a opção desejada: ").strip().lower()
+
+            if opcao == "i":
+                self.iniciar_partida()
+            elif opcao == "c":
+                nome_jogador = input("Digite o nome do jogador: ").strip()
+                jogador = Jogador(nome_jogador)
+                partida = Partida(len(self.ranking.pontuacoes), len(self.ranking.pontuacoes[0]), jogador.nome)
+                partida.carregar_jogo()
+                partida.jogar()
+            elif opcao == "p":
+                self.ranking.exibir()
+            elif opcao == "s":
+                print("Saindo do jogo. Até logo!")
+                break
+            else:
+                print("Opção inválida. Tente novamente.")
+                input("Pressione Enter para continuar...")
+
+    def iniciar_partida(self):
+        nome_jogador = input("Digite o nome do jogador: ").strip()
+        linhas = int(input("Digite o número de linhas da tela do jogo: "))
+        colunas = int(input("Digite o número de colunas da tela do jogo: "))
+        jogador = Jogador(nome_jogador)
+        partida = Partida(linhas, colunas, jogador.nome)
+        pontuacao = partida.jogar()
+        self.ranking.adicionar(jogador.nome, pontuacao)
+
+    def carregar_jogo(self):
+        try:
+            with open("save_game.txt", "r") as f:
+                linhas = f.readlines()
+                self.pontuacao = int(linhas[0])
+                self.grade = [list(linha.strip()) for linha in linhas[1:]]
+            print("Partida carregada com sucesso!")
+        except FileNotFoundError:
+            print("Nenhum jogo salvo encontrado.")
+            input("Pressione Enter para continuar...")
+
+
+class Jogador:
+    def __init__(self, nome):
+        self.nome = nome
+        self.pontuacao = 0
+
+
+class Ranking:
+    def __init__(self, caminho_arquivo='ranking.txt'):
+        self.pontuacoes = self.carregar(caminho_arquivo)
+
+    def adicionar(self, nome, pontuacao):
+        # Garantir que a pontuação seja um número inteiro
+        if not isinstance(pontuacao, int):
+            raise ValueError(f"Pontuação inválida: {pontuacao}. Deve ser um inteiro.")
+
+        self.pontuacoes.append((nome, pontuacao))
+    
+        # Verificar consistência dos dados antes de ordenar
+        for item in self.pontuacoes:
+            if not isinstance(item[1], int):
+                raise ValueError(f"Pontuação inválida no ranking: {item}. Deve ser um inteiro.")
+
+        # Ordenar a lista com segurança
+        self.pontuacoes.sort(key=lambda x: x[1], reverse=True)
+
+    def salvar(self):
+        with open(self.arquivo, "w") as f:
+            for nome, pontuacao in self.pontuacoes[:10]:
+                f.write(f"{nome},{pontuacao}\n")
+
+    def carregar(self, caminho_arquivo):
+        try:
+            with open(caminho_arquivo, 'r') as arquivo:
+                pontuacoes = []
+                for linha in arquivo:
+                    dados = linha.strip().split(',')
+                    if len(dados) != 2:
+                        raise ValueError(f"Formato inválido no arquivo: {linha}")
+
+                    nome = dados[0]
+                    try:
+                        pontuacao = int(dados[1])  # Converter pontuação para inteiro
+                    except ValueError:
+                        raise ValueError(f"Pontuação inválida no arquivo: {dados[1]}. Deve ser um número inteiro.")
+
+                    pontuacoes.append((nome, pontuacao))
+
+                # Ordenar o ranking ao carregar
+                pontuacoes.sort(key=lambda x: x[1], reverse=True)
+                return pontuacoes
+
+        except FileNotFoundError:
+            print(f"Arquivo {caminho_arquivo} não encontrado. Criando um novo ranking.")
+            return []
+
+    def exibir(self):
+        if not self.pontuacoes:
+            print("Nenhuma pontuação registrada ainda.")
+        else:
+            print("Ranking:")
+            for i, (nome, pontuacao) in enumerate(self.pontuacoes[:10], 1):
+                print(f"{i}. {nome} - {pontuacao} pontos")
+        input("Pressione Enter para continuar...")
+
 
 if __name__ == "__main__":
-    partida = Partida(8, 12, "Micael")
-    partida.jogar()
+    jogo = Jogo()
+    jogo.menu()
