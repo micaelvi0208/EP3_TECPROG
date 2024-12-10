@@ -88,7 +88,7 @@ class Peca:
     def rotacionar(self, tabuleiro, sentido_horario=True):
         if self.forma == 'O':  # O não precisa rotacionar
             return
-    
+
         # Calcular novas coordenadas para a rotação
         novas_coordenadas = []
         for dx, dy in TETROMINOES[self.forma]:
@@ -96,16 +96,16 @@ class Peca:
                 novas_coordenadas.append((-dy, dx))  # Rotação no sentido horário
             else:
                 novas_coordenadas.append((dy, -dx))  # Rotação no sentido anti-horário)
-    
+
         # Validar se a rotação é possível
         for dx, dy in novas_coordenadas:
             x_pos = self.x + dx
             y_pos = self.y + dy
-        
+
             # Verificar limites do tabuleiro
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos < 0 or y_pos >= len(tabuleiro):
                 return  # Rotação inválida
-        
+
             # Verificar colisão com peças já fixas no tabuleiro
             if tabuleiro[y_pos][x_pos] != ' ':
                 return  # Rotação inválida
@@ -142,11 +142,12 @@ class Partida:
 
             
             Tela.exibir(self.grade, self.pontuacao)
-        
-            while self.peca_atual.podeMover(self.grade, 0, 1):
+
+            sair = False
+            while self.peca_atual.podeMover(self.grade, 0, 1) and sair == False:
                 tecla = readkey()
                 if tecla == 's':
-                    break
+                    sair = True
                 elif tecla == key.DOWN:
                     if self.peca_atual.podeMover(self.grade, 0, 1):
                         self.peca_atual.moverPeca(self.grade, 0, 1)
@@ -161,7 +162,9 @@ class Partida:
                 elif tecla == key.PAGE_DOWN:
                     self.peca_atual.rotacionar(self.grade, sentido_horario=False)
                 elif tecla == 'g':
-                    print("grava e sai")
+                    self.peca_atual.apagaAnterior(self.grade)
+                    self.salvar_jogo()
+                    sair = True
                 else:
                     continue
                 Tela.limpar_tela()
@@ -179,6 +182,11 @@ class Partida:
         self.grade = [[" " for _ in range(self.colunas)] for _ in range(linhas_removidas)] + novas_linhas
         return linhas_removidas
 
+    def salvar_jogo(self):
+        with open("save_game.txt", "w") as f:
+            f.write(f"{self.pontuacao}\n")
+            for linha in self.grade:
+                f.write("".join(linha) + "\n")
 
 class Tela:
     @staticmethod
