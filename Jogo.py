@@ -47,10 +47,11 @@ class Peca:
     #  Inicializa uma peça com forma e símbolo aleatórios. A peça começa no topo central da grade.
     #  @param colunas Número de colunas na grade do jogo.
     def __init__(self, colunas):
-    
+        ## Forma do tetromino
         self.forma = random.choice(list(TETROMINOES.keys()))
 
         if self.forma == 'I':
+            ## Símbolo usado para a forma em questão
             self.simbolo = '$'
         elif self.forma == 'O':
             self.simbolo = '&'
@@ -65,7 +66,9 @@ class Peca:
         else:
             self.simbolo = '@'
         
+        ## Coordenada horizontal inicial da peça
         self.x = int (colunas/2)
+        ## Coordenada vertical inicial da peça
         self.y = 0
     
     ## @brief Posiciona a peça na grade do tabuleiro.
@@ -133,7 +136,9 @@ class Peca:
     #  @param tabuleiro Matriz representando o tabuleiro.
     #  @param sentido_horario Se True, rotaciona no sentido horário; caso contrário, rotaciona no sentido anti-horário.
     def rotacionar(self, tabuleiro, sentido_horario=True):
-        if self.forma == 'O':  
+        ## Forma da peça vigente
+        forma = self.forma
+        if forma == 'O':  
             return
 
         novas_coordenadas = []
@@ -180,15 +185,22 @@ class Partida:
     #  @param pontuacao Pontuação inicial (None para iniciar com 0).
     def __init__(self, linhas, colunas, jogador, mapa, pontuacao):
         if mapa == None:
+            ## Grade da nova partida ou de partida pré-carregada
             self.grade = [[" " for _ in range(colunas)] for _ in range(linhas)]
         else:
             self.grade = mapa
+        ## Número de linhas da grade
         self.linhas = linhas
+        ## Número de colunas da grade
         self.colunas = colunas
+        ## Nome do jogador da partida
         self.jogador = jogador
+        ## Peça atual que o jogador controla
         self.peca_atual = Peca(colunas)
+        ## Estado do jogo
         self.jogo_ativo = True
         if pontuacao == None:
+            ## Pontuação da partida
             self.pontuacao = 0
         else:
             self.pontuacao = pontuacao
@@ -327,6 +339,7 @@ class Jogo:
     #
     #  Inicializa o ranking do jogo.
     def __init__(self):
+        ## Ranking do Jogo atual
         self.ranking = Ranking()
     
     ## Exibe o menu principal do jogo.
@@ -423,7 +436,9 @@ class Jogador:
     #
     #  @param nome (str): Nome do jogador.
     def __init__(self, nome):
+        ## Nome do Jogador
         self.nome = nome
+        ## Pontuação do Jogador
         self.pontuacao = 0
 
 
@@ -445,6 +460,7 @@ class Ranking:
     #
     #  @param caminho_arquivo (str): Caminho do arquivo onde o ranking é armazenado. O valor padrão é 'ranking.txt'.
     def __init__(self, caminho_arquivo='ranking.txt'):
+        ## Pontuações do ranking
         self.pontuacoes = self.carregar(caminho_arquivo)
 
     ## Adiciona nova pontuação ao ranking.
@@ -453,15 +469,16 @@ class Ranking:
     #
     #  @param nome (str): Nome do jogador.
     #  @param pontuacao (int): Pontuação do jogador. Deve ser um número inteiro.
-    #
-    #  @raises ValueError: Se a pontuação fornecida não for um número inteiro.
     def adicionar(self, nome, pontuacao):
         if not isinstance(pontuacao, int):
             raise ValueError(f"Pontuação inválida: {pontuacao}. Deve ser um inteiro.")
 
+        ## Pontuações do ranking
         self.pontuacoes.append((nome, pontuacao))
+
+        pontuacoes = self.pontuacoes
     
-        for item in self.pontuacoes:
+        for item in pontuacoes:
             if not isinstance(item[1], int):
                 raise ValueError(f"Pontuação inválida no ranking: {item}. Deve ser um inteiro.")
 
@@ -483,8 +500,6 @@ class Ranking:
     #  @param caminho_arquivo (str): Caminho do arquivo onde o ranking é armazenado.
     #
     #  @returns list: Uma lista de tuplas contendo o nome e a pontuação dos jogadores, ordenada por pontuação.
-    #
-    #  @raises ValueError: Se o formato do arquivo for inválido ou se a pontuação não for um número inteiro.
     def carregar(self, caminho_arquivo):
         try:
             with open(caminho_arquivo, 'r') as arquivo:
@@ -522,6 +537,7 @@ class Ranking:
 
 
 if __name__ == "__main__":
+    ## Objeto Jogo
     jogo = Jogo()
     jogo.menu()
 
