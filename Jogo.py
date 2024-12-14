@@ -29,7 +29,7 @@ import datetime
 
 
 
-# Definição das formas das peças (Tetrominoes) com coordenadas relativas
+"""Definição das formas das peças (Tetrominoes) com coordenadas relativas"""
 TETROMINOES = {
     'I': [(0, 1), (1, 1), (2, 1), (3, 1)],
     'O': [(0, 0), (0, 1), (1, 0), (1, 1)],
@@ -41,7 +41,7 @@ TETROMINOES = {
 }
 
 
-# Classe que representa uma peça no jogo
+""" Classe que representa uma peça no jogo"""
 class Peca:
     """
     Representa uma peça Tetromino no jogo, com funcionalidade para posicionamento, 
@@ -87,16 +87,18 @@ class Peca:
         Returns:
         - bool: True se o posicionamento for bem-sucedido, False caso contrário.
         """
-        coord = TETROMINOES[self.forma] # Coordenadas relativas
+
+        """ Coordenadas relativas"""
+        coord = TETROMINOES[self.forma] 
         for dx, dy in coord:
-            # Coordenadas na grade
+            """Coordenadas na grade"""
             x_pos = self.x + dx
             y_pos = self.y + dy
-            # Verifica se a posição está disponível
+            """Verifica se a posição está disponível"""
             if tabuleiro[y_pos][x_pos] != ' ':
                 return False
         for dx, dy in coord:
-            # Insere no tabuleiro
+            """Insere no tabuleiro"""
             x_pos = self.x + dx
             y_pos = self.y + dy
             tabuleiro[y_pos][x_pos] = self.simbolo
@@ -111,10 +113,14 @@ class Peca:
         dx (int): Deslocamento na direção horizontal.
         dy (int): Deslocamento na direção vertical.
     """
-        self.apagaAnterior(tabuleiro) # Remove a peça na posição atual
-        self.x += dx # Atualiza posição horizontal
-        self.y += dy # Atualiza posição vertical
-        self.posicionarTabuleiro(tabuleiro) # Insere no tabuleiro na nova posição
+        """Remove a peça na posição atual"""
+        self.apagaAnterior(tabuleiro) 
+        """Atualiza posição horizontal"""
+        self.x += dx
+        """Atualiza posição vertical"""  
+        self.y += dy
+        """Insere no tabuleiro na nova posição"""
+        self.posicionarTabuleiro(tabuleiro) 
 
     def apagaAnterior(self, tabuleiro):
         """
@@ -123,12 +129,14 @@ class Peca:
     Args:
         tabuleiro (list[list[str]]): Representação do tabuleiro.
     """
-        coord = TETROMINOES[self.forma] # Obtém as coordenadas relativas da peça
+        """Obtém as coordenadas relativas da peça"""
+        coord = TETROMINOES[self.forma] 
         for dx, dy in coord:
-            # Calcula posições no tabuleiro
+            """Calcula posições no tabuleiro"""
             x_pos = self.x + dx
             y_pos = self.y + dy
-            tabuleiro[y_pos][x_pos] = ' ' # Substitui por espaços vazios
+            """ Substitui por espaços vazios"""
+            tabuleiro[y_pos][x_pos] = ' ' 
     
     def podeMover(self, tabuleiro, dx, dy):
         """
@@ -142,25 +150,25 @@ class Peca:
     Returns:
         bool: True se o movimento for válido, False caso contrário.
     """
-        # Coordenadas da peça atual
+        """Coordenadas da peça atual"""
         coord_atual = TETROMINOES[self.forma]
 
-        # Verificar a nova posição
+        """Verificar a nova posição"""
         for dx_, dy_ in coord_atual:
             x_pos = self.x + dx + dx_
             y_pos = self.y + dy + dy_
 
-            # Verifica limites do tabuleiro
+            """Verifica limites do tabuleiro"""
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos >= len(tabuleiro):
                 return False
 
-            # Ignora verificações para partes fora do tabuleiro (acima)
+            """Ignora verificações para partes fora do tabuleiro (acima)"""
             if y_pos < 0:
                 continue
 
-            # Verifica colisões com peças fixadas no tabuleiro
+            """Verifica colisões com peças fixadas no tabuleiro"""
             if tabuleiro[y_pos][x_pos] != ' ':
-                # Garante que a posição atual da peça não seja considerada como obstáculo
+                """Garante que a posição atual da peça não seja considerada como obstáculo"""
                 if (x_pos, y_pos) not in [(self.x + dx_, self.y + dy_) for dx_, dy_ in coord_atual]:
                     return False
 
@@ -174,35 +182,40 @@ class Peca:
         tabuleiro (list[list[str]]): Representação do tabuleiro.
         sentido_horario (bool): Se True, rotaciona no sentido horário; se False, anti-horário.
     """
-        if self.forma == 'O':  # O não precisa rotacionar
+        """ O não precisa rotacionar"""
+        if self.forma == 'O':  
             return
 
-        # Calcular novas coordenadas para a rotação
+        """Calcular novas coordenadas para a rotação"""
         novas_coordenadas = []
         for dx, dy in TETROMINOES[self.forma]:
             if sentido_horario:
-                novas_coordenadas.append((-dy, dx))  # Rotação no sentido horário
+                """Rotação no sentido horário"""
+                novas_coordenadas.append((-dy, dx))  
             else:
-                novas_coordenadas.append((dy, -dx))  # Rotação no sentido anti-horário)
+                """Rotação no sentido anti-horário)"""
+                novas_coordenadas.append((dy, -dx))  
 
         backup = novas_coordenadas
-        # Validar se a rotação é possível
+        """Validar se a rotação é possível"""
         for dx, dy in novas_coordenadas:
             x_pos = self.x + dx
             y_pos = self.y + dy
 
-            # Verificar limites do tabuleiro
+            """Verificar limites do tabuleiro"""
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos < 0 or y_pos >= len(tabuleiro):
-                return  # Rotação inválida
+                """ Rotação inválida"""
+                return  
 
-            # Verificar colisão com peças já fixas no tabuleiro
+            """Verificar colisão com peças já fixas no tabuleiro"""
             if tabuleiro[y_pos][x_pos] != ' ':
-                return  # Rotação inválida
+                """ Rotação inválida"""
+                return  
 
-            # Apagar a posição anterior da peça no tabuleiro
+            """ Apagar a posição anterior da peça no tabuleiro"""
             self.apagaAnterior(tabuleiro)
 
-            # Atualizar as coordenadas da peça com a rotação válida
+            """ Atualizar as coordenadas da peça com a rotação válida"""
             TETROMINOES[self.forma] = novas_coordenadas
             self.posicionarTabuleiro(tabuleiro)
             TETROMINOES[self.forma] = backup
@@ -224,7 +237,7 @@ class Partida:
         - mapa (list): Estado da grade (None para nova partida).
         - pontuacao (int): Pontuação inicial (None para 0).
         """
-        # Distingue se é nova partida ou se está carregando uma partida antiga
+        """ Distingue se é nova partida ou se está carregando uma partida antiga"""
         if mapa == None:
             self.grade = [[" " for _ in range(colunas)] for _ in range(linhas)]
         else:
@@ -234,19 +247,19 @@ class Partida:
         self.jogador = jogador
         self.peca_atual = Peca(colunas)
         self.jogo_ativo = True
-        # Distingue se é nova partida ou se está carregando uma partida antiga
+        """ Distingue se é nova partida ou se está carregando uma partida antiga"""
         if pontuacao == None:
             self.pontuacao = 0
         else:
             self.pontuacao = pontuacao
 
     def jogar(self):
-        #self.peca_atual = self.gerar_peca()
         while self.jogo_ativo:
-            Tela.limpar_tela()  # Limpa a tela antes de exibir a atualização
+            """Limpa a tela antes de exibir a atualização"""
+            Tela.limpar_tela()  
 
-            # Verifica se não é possível posicionar nova peça no tabuleiro.
-            # Essa situação implica que a partida acabou
+            """ Verifica se não é possível posicionar nova peça no tabuleiro."""
+            """ Essa situação implica que a partida acabou"""
             if not self.peca_atual.posicionarTabuleiro(self.grade):
                 self.jogo_ativo = False
                 Tela.limpar_tela()
@@ -254,45 +267,46 @@ class Partida:
                 print("Game Over!")
                 return self.pontuacao
 
-            # Exibe tela atualizada
+            """ Exibe tela atualizada"""
             Tela.exibir(self.grade, self.pontuacao)
 
-            # Laço para receber comandos na partida enquanto a peça não atinge o chão
+            """ Laço para receber comandos na partida enquanto a peça não atinge o chão"""
             while self.peca_atual.podeMover(self.grade, 0, 1):
-                tecla = readkey() # Leitura da tecla
+                """ Leitura da tecla"""
+                tecla = readkey() 
                 if tecla == 's':
-                    # Sair do jogo
+                    """ Sair do jogo"""
                     return self.pontuacao
                 elif tecla == key.DOWN:
-                    # Mover para baixo
+                    """ Mover para baixo"""
                     if self.peca_atual.podeMover(self.grade, 0, 1):
                         self.peca_atual.moverPeca(self.grade, 0, 1)
                 elif tecla == key.RIGHT:
-                    # Mover para a direita
+                    """ Mover para a direita"""
                     if self.peca_atual.podeMover(self.grade, 1, 0):
                         self.peca_atual.moverPeca(self.grade, 1, 0)
                 elif tecla == key.LEFT:
-                    # Mover para a esquerda
+                    """ Mover para a esquerda"""
                     if self.peca_atual.podeMover(self.grade, -1, 0):
                         self.peca_atual.moverPeca(self.grade, -1, 0)
                 elif tecla == key.PAGE_UP:
-                    # Rotaciona sentido horário
+                    """ Rotaciona sentido horário"""
                     self.peca_atual.rotacionar(self.grade, sentido_horario=True)
                 elif tecla == key.PAGE_DOWN:
-                    # Rotaciona sentido anti-horário
+                    """ Rotaciona sentido anti-horário"""
                     self.peca_atual.rotacionar(self.grade, sentido_horario=False)
                 elif tecla == 'g':
-                    # Grava partida e sai do jogo
+                    """ Grava partida e sai do jogo"""
                     self.peca_atual.apagaAnterior(self.grade)
                     self.salvar_jogo()
                     return self.pontuacao
                 else:
-                    # Tecla sem comando
+                    """ Tecla sem comando"""
                     continue
                 Tela.limpar_tela()
                 Tela.exibir(self.grade, self.pontuacao)
 
-                # Verifica se completou uma ou mais linhas
+                """Verifica se completou uma ou mais linhas"""
                 if not self.peca_atual.podeMover(self.grade, 0, 1):
                     self.peca_atual.posicionarTabuleiro(self.grade)
                     linhas_removidas = self.removerLinhas()
@@ -300,15 +314,16 @@ class Partida:
                     self.peca_atual = Peca(self.colunas)
     
     def removerLinhas(self):
-        # Remoção de linhas completas
+        """ Remoção de linhas completas"""
 
-        # Filtra as linhas do tabuleiro, mantendo apenas aquelas que contêm espaços vazios (' ').
+        """Filtra as linhas do tabuleiro, mantendo apenas aquelas que contêm espaços vazios (' ')."""
         novas_linhas = [linha for linha in self.grade if " " in linha]
-        # Calcula a quantidade de linhas removidas ao comparar o tamanho original com o novo.
+        """Calcula a quantidade de linhas removidas ao comparar o tamanho original com o novo."""
         linhas_removidas = len(self.grade) - len(novas_linhas)
-        # Adiciona linhas vazias no topo para manter o tamanho original do tabuleiro.
+        """Adiciona linhas vazias no topo para manter o tamanho original do tabuleiro."""
         self.grade = [[" " for _ in range(self.colunas)] for _ in range(linhas_removidas)] + novas_linhas
-        return linhas_removidas # retorna o número de linhas removidas
+        """ retorna o número de linhas removidas"""
+        return linhas_removidas 
 
     def salvar_jogo(self):
         """
@@ -321,18 +336,22 @@ class Partida:
         - Pontuação atual.
         - Estado do tabuleiro (grade).
         """
-        # Gerar o nome do arquivo com base no nome do jogador e data/hora atual
+        """ Gerar o nome do arquivo com base no nome do jogador e data/hora atual"""
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         nome_arquivo = f"{self.jogador}_{timestamp}.txt"
 
-        # Abrir o arquivo no modo de escrita e salvar as informações do jogo
+        """Abrir o arquivo no modo de escrita e salvar as informações do jogo"""
         with open(nome_arquivo, "w") as f:
-            f.write(f"{self.linhas}\n")  # Número de linhas do tabuleiro
-            f.write(f"{self.colunas}\n")  # Número de colunas do tabuleiro
-            f.write(f"{self.jogador}\n")  # Nome do jogador
-            f.write(f"{self.pontuacao}\n")  # Pontuação atual
+            """Número de linhas do tabuleiro"""
+            f.write(f"{self.linhas}\n")  
+            """ Número de colunas do tabuleiro""" 
+            f.write(f"{self.colunas}\n") 
+            """Nome do jogador"""
+            f.write(f"{self.jogador}\n")  
+            """Pontuação atual"""
+            f.write(f"{self.pontuacao}\n")  
 
-            # Salvar o estado do tabuleiro (grade)
+            """Salvar o estado do tabuleiro (grade)"""
             for linha in self.grade:
                 f.write("".join(linha) + "\n")
     
@@ -345,7 +364,7 @@ class Tela:
     """
     @staticmethod
     def limpar_tela():
-        # Limpa a tela dependendo do sistema operacional
+        """ Limpa a tela dependendo do sistema operacional"""
         os.system('cls||clear')
 
     @staticmethod
@@ -377,7 +396,8 @@ class Jogo:
     def menu(self):
         """Exibe o menu principal do jogo."""
         while True:
-            Tela.limpar_tela()  # Limpa a tela antes de exibir o menu
+            """Limpa a tela antes de exibir o menu"""
+            Tela.limpar_tela()  
             print("*** Jogo Textris - um Tetris em modo texto ***")
             print("Opções do jogo:")
             print("- <i> para iniciar uma nova partida")
@@ -387,40 +407,40 @@ class Jogo:
             opcao = input("Digite a opção desejada: ").strip().lower()
 
             if opcao == "i":
-                # INICIAR PARTIDA
+                """INICIAR PARTIDA"""
                 self.iniciar_partida()
             elif opcao == "c":
-                # CARREGAR PARTIDA
+                """CARREGAR PARTIDA"""
                 nome_arquivo = input("Digite o nome do arquivo: ").strip()
                 self.carregarPartida(nome_arquivo)
             elif opcao == "p":
-                # EXIBIÇÃO DO TOP 10 DO RANKING
+                """EXIBIÇÃO DO TOP 10 DO RANKING"""
                 self.ranking.exibir()
             elif opcao == "s":
-                # SAIR DO JOGO
+                """ SAIR DO JOGO"""
                 print("Saindo do jogo. Até logo!")
                 break
             else:
-                # Tecla sem função
+                """ Tecla sem função"""
                 print("Opção inválida. Tente novamente.")
                 input("Pressione Enter para continuar...")
 
     def iniciar_partida(self):
-        # Função que inicia nova partida
+        """ Função que inicia nova partida"""
 
-        # Insere os valores para construir a partida
+        """ Insere os valores para construir a partida"""
         nome_jogador = input("Digite o nome do jogador: ").strip()
         linhas = int(input("Digite o número de linhas da tela do jogo: "))
         colunas = int(input("Digite o número de colunas da tela do jogo: "))
         jogador = Jogador(nome_jogador)
 
-        # Construção da partida
+        """ Construção da partida"""
         partida = Partida(linhas, colunas, jogador.nome, None, None)
 
-        # Inicia a partida
+        """Inicia a partida"""
         jogador.pontuacao = partida.jogar()
 
-        # Adiciona a pontuação ao ranking e o salva
+        """ Adiciona a pontuação ao ranking e o salva"""
         self.ranking.adicionar(jogador.nome, jogador.pontuacao)
         self.ranking.salvar()
 
@@ -435,35 +455,38 @@ class Jogo:
     e o estado do tabuleiro.
     """
         
-        # Tenta abrir o arquivo em questão
+        """Tenta abrir o arquivo em questão"""
         try:
             with open(nome_arquivo, "r") as f:
-                # Pega os valores na ordem em que foram gravados
+                """ Pega os valores na ordem em que foram gravados"""
                 linhas = int(f.readline().strip())
                 colunas = int(f.readline().strip())
                 jogador = Jogador(None)
                 jogador.nome = str(f.readline().strip())
                 jogador.pontuacao = int(f.readline().strip())
 
-                # Inicia o tabuleiro
+                """ Inicia o tabuleiro"""
                 grade = []
-                # Pega as linhas que compõem o tabuleiro
+                """ Pega as linhas que compõem o tabuleiro"""
                 for linha in f:
-                    linha = linha.rstrip('\n')  # Remove o '\n'
-                    # Inicia cada linha do tabuleiro
+                    """ Remove o '\n'"""
+                    linha = linha.rstrip('\n') 
+                    """Inicia cada linha do tabuleiro"""
                     nova_linha = []
-                    for char in linha:  # Lê cada caractere individualmente
+                    """ Lê cada caractere individualmente"""
+                    for char in linha:  
                         nova_linha.append(char)
-                    grade.append(nova_linha)  # Adiciona a nova linha formatada à grade
+                    """ Adiciona a nova linha formatada à grade"""
+                    grade.append(nova_linha)  
         except FileNotFoundError:
-            # Caso o arquivo não for encontrado
+            """ Caso o arquivo não for encontrado"""
             print("Nenhuma partida salva encontrada.")
         
-        # Construção da partida
+        """ Construção da partida"""
         partida = Partida(linhas, colunas, jogador.nome, grade, jogador.pontuacao)
-        # Inicia partida
+        """ Inicia partida"""
         jogador.pontuacao = partida.jogar()
-        # Adiciona pontuação ao ranking e o salva
+        """ Adiciona pontuação ao ranking e o salva"""
         self.ranking.adicionar(jogador.nome, jogador.pontuacao)
         self.ranking.salvar()
 
@@ -482,62 +505,63 @@ class Ranking:
     Classe para gravar o Ranking de pontuações
     """
 
-    # Construção a partir de arquivo ranking.txt
+    """ Construção a partir de arquivo ranking.txt"""
     def __init__(self, caminho_arquivo='ranking.txt'):
         self.pontuacoes = self.carregar(caminho_arquivo)
 
-    # Adiciona nova pontuação ao ranking
+    """ Adiciona nova pontuação ao ranking"""
     def adicionar(self, nome, pontuacao):
-        # Garantir que a pontuação seja um número inteiro
+        """ Garantir que a pontuação seja um número inteiro"""
         if not isinstance(pontuacao, int):
             raise ValueError(f"Pontuação inválida: {pontuacao}. Deve ser um inteiro.")
 
         self.pontuacoes.append((nome, pontuacao))
     
-        # Verificar consistência dos dados antes de ordenar
+        """ Verificar consistência dos dados antes de ordenar"""
         for item in self.pontuacoes:
             if not isinstance(item[1], int):
                 raise ValueError(f"Pontuação inválida no ranking: {item}. Deve ser um inteiro.")
 
-        # Ordenar a lista com segurança
+        """ Ordenar a lista com segurança"""
         self.pontuacoes.sort(key=lambda x: x[1], reverse=True)
 
-    # Salva o top 10 do ranking atualizado no arquivo ranking.txt
+    """ Salva o top 10 do ranking atualizado no arquivo ranking.txt"""
     def salvar(self):
         with open("ranking.txt", "w") as f:
             for nome, pontuacao in self.pontuacoes[:10]:
                 f.write(f"{nome},{pontuacao}\n")
 
-    # Carrega os dados do ranking salvis
+    """ Carrega os dados do ranking salvis"""
     def carregar(self, caminho_arquivo):
-        # tenta abrir o arquivo
+        """ tenta abrir o arquivo"""
         try:
             with open(caminho_arquivo, 'r') as arquivo:
-                # inicia a lista de pontuações
+                """ inicia a lista de pontuações"""
                 pontuacoes = []
                 for linha in arquivo:
-                    # Pega os dados do arquivo: nome e pontuação
+                    """ Pega os dados do arquivo: nome e pontuação"""
                     dados = linha.strip().split(',')
                     if len(dados) != 2:
                         raise ValueError(f"Formato inválido no arquivo: {linha}")
 
                     nome = dados[0]
                     try:
-                        pontuacao = int(dados[1])  # Converter pontuação para inteiro
+                        """ Converter pontuação para inteiro"""
+                        pontuacao = int(dados[1]) 
                     except ValueError:
                         raise ValueError(f"Pontuação inválida no arquivo: {dados[1]}. Deve ser um número inteiro.")
 
                     pontuacoes.append((nome, pontuacao))
 
-                # Ordenar o ranking ao carregar
+                """ Ordenar o ranking ao carregar"""
                 pontuacoes.sort(key=lambda x: x[1], reverse=True)
                 return pontuacoes
-        # Caso não encontrar o arquivo
         except FileNotFoundError:
+            """ Caso não encontrar o arquivo"""
             print(f"Arquivo {caminho_arquivo} não encontrado. Criando um novo ranking.")
             return []
 
-    # Exibição do Ranking
+    """ Exibição do Ranking"""
     def exibir(self):
         if not self.pontuacoes:
             print("Nenhuma pontuação registrada ainda.")
@@ -548,7 +572,7 @@ class Ranking:
         input("Pressione Enter para continuar...")
 
 
-# Execução da main
+""" Execução da main"""
 if __name__ == "__main__":
     jogo = Jogo()
     jogo.menu()
