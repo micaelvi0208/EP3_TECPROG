@@ -19,11 +19,14 @@ Dependências:
 - readchar: Biblioteca usada para detectar entradas de teclado de forma interativa.
 - os: Usada para limpar a tela do terminal dependendo do sistema operacional.
 - random: Utilizada para selecionar peças aleatórias.
+- datetime: Utilizada para manipular datas e horários
 """
 
 import os
 import random
 from readchar import readkey, key
+import datetime
+
 
 
 # Definição das formas das peças (Tetrominoes) com coordenadas relativas
@@ -308,14 +311,32 @@ class Partida:
         return linhas_removidas # retorna o número de linhas removidas
 
     def salvar_jogo(self):
-        # Função para gravar uma partida em um arquivo "save_game.txt"
-        with open("save_game.txt", "w") as f:
-            f.write(f"{self.linhas}\n")
-            f.write(f"{self.colunas}\n")
-            f.write(f"{self.jogador}\n")
-            f.write(f"{self.pontuacao}\n")
+        """
+        Salva o estado atual do jogo em um arquivo cujo nome segue o formato:
+        [nome do jogador] + [data e hora da gravação].txt.
+
+        O arquivo contém as informações essenciais para retomar o jogo:
+        - Dimensões do tabuleiro (linhas e colunas).
+        - Nome do jogador.
+        - Pontuação atual.
+        - Estado do tabuleiro (grade).
+        """
+        # Gerar o nome do arquivo com base no nome do jogador e data/hora atual
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        nome_arquivo = f"{self.jogador}_{timestamp}.txt"
+
+        # Abrir o arquivo no modo de escrita e salvar as informações do jogo
+        with open(nome_arquivo, "w") as f:
+            f.write(f"{self.linhas}\n")  # Número de linhas do tabuleiro
+            f.write(f"{self.colunas}\n")  # Número de colunas do tabuleiro
+            f.write(f"{self.jogador}\n")  # Nome do jogador
+            f.write(f"{self.pontuacao}\n")  # Pontuação atual
+
+            # Salvar o estado do tabuleiro (grade)
             for linha in self.grade:
                 f.write("".join(linha) + "\n")
+    
+        print(f"Jogo salvo em: {nome_arquivo}")
 
 
 class Tela:
@@ -370,7 +391,8 @@ class Jogo:
                 self.iniciar_partida()
             elif opcao == "c":
                 # CARREGAR PARTIDA
-                self.carregarPartida()
+                nome_arquivo = input("Digite o nome do arquivo: ").strip()
+                self.carregarPartida(nome_arquivo)
             elif opcao == "p":
                 # EXIBIÇÃO DO TOP 10 DO RANKING
                 self.ranking.exibir()
@@ -402,12 +424,20 @@ class Jogo:
         self.ranking.adicionar(jogador.nome, jogador.pontuacao)
         self.ranking.salvar()
 
-    def carregarPartida(self):
-        # Carrega uma partida salva no arquivo save_game.txt
+    def carregarPartida(self, nome_arquivo):
+        """
+    Carrega o estado de um jogo salvo a partir de um arquivo.
 
+    Argumentos:
+        nome_arquivo (str): Nome do arquivo onde o jogo foi salvo.
+    
+    O método restaura as dimensões do tabuleiro, nome do jogador, pontuação
+    e o estado do tabuleiro.
+    """
+        
         # Tenta abrir o arquivo em questão
         try:
-            with open("save_game.txt", "r") as f:
+            with open(nome_arquivo, "r") as f:
                 # Pega os valores na ordem em que foram gravados
                 linhas = int(f.readline().strip())
                 colunas = int(f.readline().strip())
