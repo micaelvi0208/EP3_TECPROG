@@ -1,26 +1,25 @@
-"""
-Este programa é uma implementação em Python de um jogo semelhante ao Tetris chamado 'Textris'. 
-O jogo é exibido no terminal e permite que o jogador mova, rotacione e manipule peças que caem 
-em uma grade. Além disso, o programa suporta funcionalidades como salvar e carregar partidas, 
-manter um ranking de pontuações e exibir um menu interativo.
-
-Classes Principais:
-- Peca: Representa uma peça do jogo, incluindo seu tipo, posição, e lógica para movimento e rotação.
-- Partida: Gerencia uma partida individual do jogo, incluindo a lógica de atualização da grade, 
-  remoção de linhas completas e pontuação.
-- Tela: Responsável por exibir a interface do jogo no terminal e limpar a tela.
-- Jogo: Gerencia o fluxo principal do jogo, incluindo o menu principal, iniciar novas partidas 
-  e carregar partidas salvas.
-
-Constantes:
-- TETROMINOES: Define as formas das peças do jogo em termos de coordenadas relativas.
-
-Dependências:
-- readchar: Biblioteca usada para detectar entradas de teclado de forma interativa.
-- os: Usada para limpar a tela do terminal dependendo do sistema operacional.
-- random: Utilizada para selecionar peças aleatórias.
-- datetime: Utilizada para manipular datas e horários
-"""
+## @package Jogo
+#Este programa é uma implementação em Python de um jogo semelhante ao Tetris chamado 'Textris'. 
+#O jogo é exibido no terminal e permite que o jogador mova, rotacione e manipule peças que caem 
+#em uma grade. Além disso, o programa suporta funcionalidades como salvar e carregar partidas, 
+#manter um ranking de pontuações e exibir um menu interativo.
+#
+#Classes Principais:
+#- Peca: Representa uma peça do jogo, incluindo seu tipo, posição, e lógica para movimento e rotação.
+#- Partida: Gerencia uma partida individual do jogo, incluindo a lógica de atualização da grade, 
+#  remoção de linhas completas e pontuação.
+#- Tela: Responsável por exibir a interface do jogo no terminal e limpar a tela.
+#- Jogo: Gerencia o fluxo principal do jogo, incluindo o menu principal, iniciar novas partidas 
+#  e carregar partidas salvas.
+#
+#Constantes:
+#- TETROMINOES: Define as formas das peças do jogo em termos de coordenadas relativas.
+#
+#Dependências:
+#- readchar: Biblioteca usada para detectar entradas de teclado de forma interativa.
+#- os: Usada para limpar a tela do terminal dependendo do sistema operacional.
+#- random: Utilizada para selecionar peças aleatórias.
+#- datetime: Utilizada para manipular datas e horários
 
 import os
 import random
@@ -28,8 +27,8 @@ from readchar import readkey, key
 import datetime
 
 
-
-"""Definição das formas das peças (Tetrominoes) com coordenadas relativas"""
+## Constante Tetrominoes
+# Definição das formas das peças (Tetrominoes) com coordenadas relativas"""
 TETROMINOES = {
     'I': [(0, 1), (1, 1), (2, 1), (3, 1)],
     'O': [(0, 0), (0, 1), (1, 0), (1, 1)],
@@ -41,23 +40,16 @@ TETROMINOES = {
 }
 
 
-""" Classe que representa uma peça no jogo"""
+## @class Peca
+#  @brief Representa uma peça Tetromino no jogo, com funcionalidades para posicionamento, movimento e rotação.
 class Peca:
-    """
-    Representa uma peça Tetromino no jogo, com funcionalidade para posicionamento, 
-    movimento e rotação.
-    """
+    ## @brief Construtor da classe Peca.
+    #  Inicializa uma peça com forma e símbolo aleatórios. A peça começa no topo central da grade.
+    #  @param colunas Número de colunas na grade do jogo.
     def __init__(self, colunas):
-        """
-        Inicializa uma peça com forma e símbolo aleatórios.
-        A peça começa no topo central da grade.
-
-        Args:
-        - colunas (int): Número de colunas na grade do jogo.
-        """
+    
         self.forma = random.choice(list(TETROMINOES.keys()))
 
-        """Define o símbolo da peça com base em sua forma."""
         if self.forma == 'I':
             self.simbolo = '$'
         elif self.forma == 'O':
@@ -73,171 +65,120 @@ class Peca:
         else:
             self.simbolo = '@'
         
-        """ Coordenadas do centro superior da grade """
         self.x = int (colunas/2)
         self.y = 0
     
+    ## @brief Posiciona a peça na grade do tabuleiro.
+    #  @param tabuleiro Matriz representando a grade do jogo.
+    #  @return True se o posicionamento for bem-sucedido, False caso contrário.
     def posicionarTabuleiro(self, tabuleiro):
-        """
-        Posiciona a peça na grade do tabuleiro.
-
-        Args:
-        - tabuleiro (list): Matriz representando a grade do jogo.
-
-        Returns:
-        - bool: True se o posicionamento for bem-sucedido, False caso contrário.
-        """
-
-        """ Coordenadas relativas"""
         coord = TETROMINOES[self.forma] 
         for dx, dy in coord:
-            """Coordenadas na grade"""
             x_pos = self.x + dx
             y_pos = self.y + dy
-            """Verifica se a posição está disponível"""
             if tabuleiro[y_pos][x_pos] != ' ':
                 return False
         for dx, dy in coord:
-            """Insere no tabuleiro"""
             x_pos = self.x + dx
             y_pos = self.y + dy
             tabuleiro[y_pos][x_pos] = self.simbolo
         return True
 
+    ## @brief Move a peça no tabuleiro na direção especificada.
+    #  @param tabuleiro Matriz representando o tabuleiro.
+    #  @param dx Deslocamento na direção horizontal.
+    #  @param dy Deslocamento na direção vertical.
     def moverPeca(self,tabuleiro,dx,dy):
-        """
-    Move a peça no tabuleiro na direção especificada.
-
-    Args:
-        tabuleiro (list[list[str]]): Representação do tabuleiro.
-        dx (int): Deslocamento na direção horizontal.
-        dy (int): Deslocamento na direção vertical.
-    """
-        """Remove a peça na posição atual"""
         self.apagaAnterior(tabuleiro) 
-        """Atualiza posição horizontal"""
         self.x += dx
-        """Atualiza posição vertical"""  
         self.y += dy
-        """Insere no tabuleiro na nova posição"""
         self.posicionarTabuleiro(tabuleiro) 
 
+    ## @brief Remove a peça da posição atual no tabuleiro.
+    #  Substitui as posições ocupadas pela peça por espaços vazios.
+    #  @param tabuleiro Matriz representando o tabuleiro.
     def apagaAnterior(self, tabuleiro):
-        """
-    Remove a peça da posição atual no tabuleiro, substituindo por espaços vazios.
-
-    Args:
-        tabuleiro (list[list[str]]): Representação do tabuleiro.
-    """
-        """Obtém as coordenadas relativas da peça"""
         coord = TETROMINOES[self.forma] 
         for dx, dy in coord:
-            """Calcula posições no tabuleiro"""
             x_pos = self.x + dx
             y_pos = self.y + dy
-            """ Substitui por espaços vazios"""
             tabuleiro[y_pos][x_pos] = ' ' 
     
+    ## @brief Verifica se a peça pode se mover para uma nova posição.
+    #  @param tabuleiro Matriz representando o tabuleiro.
+    #  @param dx Deslocamento na direção horizontal.
+    #  @param dy Deslocamento na direção vertical.
+    #  @return True se o movimento for válido, False caso contrário.
     def podeMover(self, tabuleiro, dx, dy):
-        """
-    Verifica se a peça pode se mover para a nova posição sem colisões ou ultrapassar os limites do tabuleiro.
-
-    Args:
-        tabuleiro (list[list[str]]): Representação do tabuleiro.
-        dx (int): Deslocamento na direção horizontal.
-        dy (int): Deslocamento na direção vertical.
-
-    Returns:
-        bool: True se o movimento for válido, False caso contrário.
-    """
-        """Coordenadas da peça atual"""
+    
         coord_atual = TETROMINOES[self.forma]
 
-        """Verificar a nova posição"""
         for dx_, dy_ in coord_atual:
             x_pos = self.x + dx + dx_
             y_pos = self.y + dy + dy_
 
-            """Verifica limites do tabuleiro"""
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos >= len(tabuleiro):
                 return False
 
-            """Ignora verificações para partes fora do tabuleiro (acima)"""
             if y_pos < 0:
                 continue
 
-            """Verifica colisões com peças fixadas no tabuleiro"""
             if tabuleiro[y_pos][x_pos] != ' ':
-                """Garante que a posição atual da peça não seja considerada como obstáculo"""
                 if (x_pos, y_pos) not in [(self.x + dx_, self.y + dy_) for dx_, dy_ in coord_atual]:
                     return False
 
         return True
     
+    ## @brief Rotaciona a peça no tabuleiro, se possível.
+    #  @param tabuleiro Matriz representando o tabuleiro.
+    #  @param sentido_horario Se True, rotaciona no sentido horário; caso contrário, rotaciona no sentido anti-horário.
     def rotacionar(self, tabuleiro, sentido_horario=True):
-        """
-    Rotaciona a peça no tabuleiro, caso possível.
-
-    Args:
-        tabuleiro (list[list[str]]): Representação do tabuleiro.
-        sentido_horario (bool): Se True, rotaciona no sentido horário; se False, anti-horário.
-    """
-        """ O não precisa rotacionar"""
         if self.forma == 'O':  
             return
 
-        """Calcular novas coordenadas para a rotação"""
         novas_coordenadas = []
         for dx, dy in TETROMINOES[self.forma]:
             if sentido_horario:
-                """Rotação no sentido horário"""
                 novas_coordenadas.append((-dy, dx))  
             else:
-                """Rotação no sentido anti-horário)"""
                 novas_coordenadas.append((dy, -dx))  
 
         backup = novas_coordenadas
-        """Validar se a rotação é possível"""
         for dx, dy in novas_coordenadas:
             x_pos = self.x + dx
             y_pos = self.y + dy
 
-            """Verificar limites do tabuleiro"""
             if x_pos < 0 or x_pos >= len(tabuleiro[0]) or y_pos < 0 or y_pos >= len(tabuleiro):
-                """ Rotação inválida"""
                 return  
 
-            """Verificar colisão com peças já fixas no tabuleiro"""
             if tabuleiro[y_pos][x_pos] != ' ':
-                """ Rotação inválida"""
                 return  
 
-            """ Apagar a posição anterior da peça no tabuleiro"""
             self.apagaAnterior(tabuleiro)
 
-            """ Atualizar as coordenadas da peça com a rotação válida"""
             TETROMINOES[self.forma] = novas_coordenadas
             self.posicionarTabuleiro(tabuleiro)
             TETROMINOES[self.forma] = backup
 
 
-class Partida:
-    """
-    Representa uma partida do jogo Textris. Gerencia a lógica do jogo, incluindo
-    a grade, peças, pontuação e controles do jogador.
-    """
-    def __init__(self, linhas, colunas, jogador, mapa, pontuacao):
-        """
-        Inicializa uma partida com grade, jogador e pontuação.
+## @package partida
+#  Módulo para gerenciar partidas do jogo Textris.
+#
+#  Contém a classe `Partida` para lidar com a lógica de jogo, incluindo controle
+#  das peças, grade, pontuação e ações do jogador.
 
-        Args:
-        - linhas (int): Número de linhas na grade.
-        - colunas (int): Número de colunas na grade.
-        - jogador (str): Nome do jogador.
-        - mapa (list): Estado da grade (None para nova partida).
-        - pontuacao (int): Pontuação inicial (None para 0).
-        """
-        """ Distingue se é nova partida ou se está carregando uma partida antiga"""
+## Classe que representa uma partida do jogo Textris.
+#
+#  Gerencia a lógica do jogo, incluindo a grade, peças, pontuação e controles do jogador.
+class Partida:
+    ## O construtor.
+    #  @param self O objeto da classe.
+    #  @param linhas Número de linhas na grade.
+    #  @param colunas Número de colunas na grade.
+    #  @param jogador Nome do jogador.
+    #  @param mapa Estado inicial da grade (None para nova partida).
+    #  @param pontuacao Pontuação inicial (None para iniciar com 0).
+    def __init__(self, linhas, colunas, jogador, mapa, pontuacao):
         if mapa == None:
             self.grade = [[" " for _ in range(colunas)] for _ in range(linhas)]
         else:
@@ -247,19 +188,21 @@ class Partida:
         self.jogador = jogador
         self.peca_atual = Peca(colunas)
         self.jogo_ativo = True
-        """ Distingue se é nova partida ou se está carregando uma partida antiga"""
         if pontuacao == None:
             self.pontuacao = 0
         else:
             self.pontuacao = pontuacao
 
+    ## Inicia o loop principal do jogo.
+    #
+    #  O jogo continua até que o jogador encerre manualmente ou uma condição
+    #  de Game Over seja atingida.
+    #  @param self O objeto da classe.
+    #  @return Pontuação final do jogador.
     def jogar(self):
         while self.jogo_ativo:
-            """Limpa a tela antes de exibir a atualização"""
             Tela.limpar_tela()  
 
-            """ Verifica se não é possível posicionar nova peça no tabuleiro."""
-            """ Essa situação implica que a partida acabou"""
             if not self.peca_atual.posicionarTabuleiro(self.grade):
                 self.jogo_ativo = False
                 Tela.limpar_tela()
@@ -267,115 +210,98 @@ class Partida:
                 print("Game Over!")
                 return self.pontuacao
 
-            """ Exibe tela atualizada"""
             Tela.exibir(self.grade, self.pontuacao)
 
-            """ Laço para receber comandos na partida enquanto a peça não atinge o chão"""
             while self.peca_atual.podeMover(self.grade, 0, 1):
-                """ Leitura da tecla"""
                 tecla = readkey() 
                 if tecla == 's':
-                    """ Sair do jogo"""
                     return self.pontuacao
                 elif tecla == key.DOWN:
-                    """ Mover para baixo"""
                     if self.peca_atual.podeMover(self.grade, 0, 1):
                         self.peca_atual.moverPeca(self.grade, 0, 1)
                 elif tecla == key.RIGHT:
-                    """ Mover para a direita"""
                     if self.peca_atual.podeMover(self.grade, 1, 0):
                         self.peca_atual.moverPeca(self.grade, 1, 0)
                 elif tecla == key.LEFT:
-                    """ Mover para a esquerda"""
                     if self.peca_atual.podeMover(self.grade, -1, 0):
                         self.peca_atual.moverPeca(self.grade, -1, 0)
                 elif tecla == key.PAGE_UP:
-                    """ Rotaciona sentido horário"""
                     self.peca_atual.rotacionar(self.grade, sentido_horario=True)
                 elif tecla == key.PAGE_DOWN:
-                    """ Rotaciona sentido anti-horário"""
                     self.peca_atual.rotacionar(self.grade, sentido_horario=False)
                 elif tecla == 'g':
-                    """ Grava partida e sai do jogo"""
                     self.peca_atual.apagaAnterior(self.grade)
                     self.salvar_jogo()
                     return self.pontuacao
                 else:
-                    """ Tecla sem comando"""
                     continue
                 Tela.limpar_tela()
                 Tela.exibir(self.grade, self.pontuacao)
 
-                """Verifica se completou uma ou mais linhas"""
                 if not self.peca_atual.podeMover(self.grade, 0, 1):
                     self.peca_atual.posicionarTabuleiro(self.grade)
                     linhas_removidas = self.removerLinhas()
                     self.pontuacao += linhas_removidas * 100
                     self.peca_atual = Peca(self.colunas)
     
+    ## Remove linhas completas do tabuleiro.
+    #
+    #  Filtra as linhas do tabuleiro para manter apenas as que contêm espaços vazios.
+    #  Linhas completas são substituídas por novas linhas vazias no topo do tabuleiro.
+    #  @param self O objeto da classe.
+    #  @return Número de linhas removidas.
     def removerLinhas(self):
-        """ Remoção de linhas completas"""
 
-        """Filtra as linhas do tabuleiro, mantendo apenas aquelas que contêm espaços vazios (' ')."""
         novas_linhas = [linha for linha in self.grade if " " in linha]
-        """Calcula a quantidade de linhas removidas ao comparar o tamanho original com o novo."""
         linhas_removidas = len(self.grade) - len(novas_linhas)
-        """Adiciona linhas vazias no topo para manter o tamanho original do tabuleiro."""
         self.grade = [[" " for _ in range(self.colunas)] for _ in range(linhas_removidas)] + novas_linhas
-        """ retorna o número de linhas removidas"""
         return linhas_removidas 
 
+    ## Salva o estado atual do jogo em um arquivo.
+    #
+    #  O arquivo de salvamento inclui as dimensões do tabuleiro, o nome do jogador,
+    #  a pontuação atual e o estado do tabuleiro.
+    #  @param self O objeto da classe.
+    #  @note O estado do tabuleiro é salvo linha por linha.
     def salvar_jogo(self):
-        """
-        Salva o estado atual do jogo em um arquivo cujo nome segue o formato:
-        [nome do jogador] + [data e hora da gravação].txt.
-
-        O arquivo contém as informações essenciais para retomar o jogo:
-        - Dimensões do tabuleiro (linhas e colunas).
-        - Nome do jogador.
-        - Pontuação atual.
-        - Estado do tabuleiro (grade).
-        """
-        """ Gerar o nome do arquivo com base no nome do jogador e data/hora atual"""
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         nome_arquivo = f"{self.jogador}_{timestamp}.txt"
 
-        """Abrir o arquivo no modo de escrita e salvar as informações do jogo"""
         with open(nome_arquivo, "w") as f:
-            """Número de linhas do tabuleiro"""
             f.write(f"{self.linhas}\n")  
-            """ Número de colunas do tabuleiro""" 
             f.write(f"{self.colunas}\n") 
-            """Nome do jogador"""
             f.write(f"{self.jogador}\n")  
-            """Pontuação atual"""
             f.write(f"{self.pontuacao}\n")  
 
-            """Salvar o estado do tabuleiro (grade)"""
             for linha in self.grade:
                 f.write("".join(linha) + "\n")
     
         print(f"Jogo salvo em: {nome_arquivo}")
 
 
+## @package tela
+#  Módulo utilitário para exibir e atualizar a interface do jogo no terminal.
+#
+#  Contém a classe `Tela` para manipulação da exibição da grade do jogo e da pontuação.
+
+## Classe utilitária para gerenciar a interface do jogo no terminal.
+#
+#  Oferece métodos estáticos para limpar a tela e exibir a grade do jogo e a pontuação.
 class Tela:
-    """
-    Classe utilitária para exibir e atualizar a interface do jogo no terminal.
-    """
+    ## Limpa a tela do terminal.
+    #
+    #  Executa o comando apropriado para limpar a tela, dependendo do sistema operacional.
     @staticmethod
     def limpar_tela():
-        """ Limpa a tela dependendo do sistema operacional"""
         os.system('cls||clear')
 
+    ## Exibe a grade do jogo no terminal junto com a pontuação.
+    #
+    #  Desenha a grade com bordas, mostra a pontuação atual e exibe os comandos disponíveis.
+    #  @param grade Matriz representando a grade do jogo.
+    #  @param pontuacao Pontuação atual do jogador.
     @staticmethod
     def exibir(grade, pontuacao):
-        """
-        Exibe a grade do jogo no terminal, junto com a pontuação.
-
-        Args:
-        - grade (list): Matriz representando a grade do jogo.
-        - pontuacao (int): Pontuação atual do jogador.
-        """
         print("—" * (len(grade[0]) + 2))
         for linha in grade:
             print("|" + "".join(linha) + "|")
@@ -386,17 +312,29 @@ class Tela:
         print("<s> sai da partida, <g> grava e sai da partida")
         
 
+## @package jogo
+#  Módulo para gerenciar o fluxo principal do jogo, incluindo menu e ranking.
+#
+#  A classe `Jogo` oferece funcionalidades para iniciar, carregar e gerenciar o jogo, 
+#  além de exibir o menu principal e o ranking de pontuações.
+
+## Classe para gerenciar o fluxo principal do jogo, incluindo menu e ranking.
+#
+#  Esta classe gerencia as operações principais do jogo, como iniciar novas partidas, 
+#  carregar partidas salvas e exibir o ranking.
 class Jogo:
-    """
-    Gerencia o fluxo principal do jogo, incluindo menu e ranking.
-    """
+    ## Construtor da classe Jogo.
+    #
+    #  Inicializa o ranking do jogo.
     def __init__(self):
         self.ranking = Ranking()
     
+    ## Exibe o menu principal do jogo.
+    #
+    #  O método exibe as opções para iniciar uma nova partida, carregar uma partida salva,
+    #  ver as 10 melhores pontuações ou sair do jogo.
     def menu(self):
-        """Exibe o menu principal do jogo."""
         while True:
-            """Limpa a tela antes de exibir o menu"""
             Tela.limpar_tela()  
             print("*** Jogo Textris - um Tetris em modo texto ***")
             print("Opções do jogo:")
@@ -407,161 +345,172 @@ class Jogo:
             opcao = input("Digite a opção desejada: ").strip().lower()
 
             if opcao == "i":
-                """INICIAR PARTIDA"""
                 self.iniciar_partida()
             elif opcao == "c":
-                """CARREGAR PARTIDA"""
                 nome_arquivo = input("Digite o nome do arquivo: ").strip()
                 self.carregarPartida(nome_arquivo)
             elif opcao == "p":
-                """EXIBIÇÃO DO TOP 10 DO RANKING"""
                 self.ranking.exibir()
             elif opcao == "s":
-                """ SAIR DO JOGO"""
                 print("Saindo do jogo. Até logo!")
                 break
             else:
-                """ Tecla sem função"""
                 print("Opção inválida. Tente novamente.")
                 input("Pressione Enter para continuar...")
 
+    ## Inicia uma nova partida.
+    #
+    #  Solicita o nome do jogador, o número de linhas e colunas da tela do jogo,
+    #  cria o jogador e inicia a partida.
     def iniciar_partida(self):
-        """ Função que inicia nova partida"""
-
-        """ Insere os valores para construir a partida"""
+        
         nome_jogador = input("Digite o nome do jogador: ").strip()
         linhas = int(input("Digite o número de linhas da tela do jogo: "))
         colunas = int(input("Digite o número de colunas da tela do jogo: "))
         jogador = Jogador(nome_jogador)
 
-        """ Construção da partida"""
         partida = Partida(linhas, colunas, jogador.nome, None, None)
 
-        """Inicia a partida"""
         jogador.pontuacao = partida.jogar()
 
-        """ Adiciona a pontuação ao ranking e o salva"""
         self.ranking.adicionar(jogador.nome, jogador.pontuacao)
         self.ranking.salvar()
 
+    ## Carrega o estado de uma partida salva a partir de um arquivo.
+    #
+    #  O método restaura as dimensões do tabuleiro, nome do jogador, pontuação
+    #  e o estado do tabuleiro a partir de um arquivo salvo.
+    #
+    #  @param nome_arquivo Nome do arquivo onde a partida foi salva.
     def carregarPartida(self, nome_arquivo):
-        """
-    Carrega o estado de um jogo salvo a partir de um arquivo.
-
-    Argumentos:
-        nome_arquivo (str): Nome do arquivo onde o jogo foi salvo.
-    
-    O método restaura as dimensões do tabuleiro, nome do jogador, pontuação
-    e o estado do tabuleiro.
-    """
-        
-        """Tenta abrir o arquivo em questão"""
         try:
             with open(nome_arquivo, "r") as f:
-                """ Pega os valores na ordem em que foram gravados"""
                 linhas = int(f.readline().strip())
                 colunas = int(f.readline().strip())
                 jogador = Jogador(None)
                 jogador.nome = str(f.readline().strip())
                 jogador.pontuacao = int(f.readline().strip())
 
-                """ Inicia o tabuleiro"""
                 grade = []
-                """ Pega as linhas que compõem o tabuleiro"""
                 for linha in f:
-                    """ Remove o '\n'"""
                     linha = linha.rstrip('\n') 
-                    """Inicia cada linha do tabuleiro"""
                     nova_linha = []
-                    """ Lê cada caractere individualmente"""
                     for char in linha:  
                         nova_linha.append(char)
-                    """ Adiciona a nova linha formatada à grade"""
                     grade.append(nova_linha)  
         except FileNotFoundError:
-            """ Caso o arquivo não for encontrado"""
             print("Nenhuma partida salva encontrada.")
         
-        """ Construção da partida"""
         partida = Partida(linhas, colunas, jogador.nome, grade, jogador.pontuacao)
-        """ Inicia partida"""
         jogador.pontuacao = partida.jogar()
-        """ Adiciona pontuação ao ranking e o salva"""
         self.ranking.adicionar(jogador.nome, jogador.pontuacao)
         self.ranking.salvar()
 
 
+## @package jogador
+#  Módulo que define a classe Jogador.
+#
+#  A classe `Jogador` é responsável por armazenar o nome e a pontuação de um jogador no jogo.
+
+## Classe para gravar informações pertinentes ao Jogador: nome e pontuação.
+#
+#  A classe `Jogador` armazena o nome e a pontuação do jogador, permitindo que essas informações
+#  sejam manipuladas durante o fluxo do jogo.
 class Jogador:
-    """
-    Classe para gravar informações pertinentes ao Jogador: nome e pontuação
-    """
+    ## Construtor da classe Jogador.
+    #
+    #  Inicializa o nome e a pontuação do jogador.
+    #
+    #  @param nome (str): Nome do jogador.
     def __init__(self, nome):
         self.nome = nome
         self.pontuacao = 0
 
 
-class Ranking:
-    """
-    Classe para gravar o Ranking de pontuações
-    """
+## @package ranking
+#  Módulo que define a classe Ranking.
+#
+#  A classe `Ranking` é responsável por armazenar e manipular as pontuações dos jogadores, além de
+#  salvar e carregar o ranking a partir de um arquivo.
 
-    """ Construção a partir de arquivo ranking.txt"""
+## Classe para gravar o Ranking de pontuações.
+#
+#  A classe `Ranking` gerencia as pontuações dos jogadores, armazenando as pontuações em um arquivo e
+#  permitindo que o ranking seja exibido, salvo e carregado.
+
+class Ranking:
+    ## Construtor da classe Ranking.
+    #
+    #  Inicializa o ranking carregando as pontuações do arquivo especificado ou cria um novo ranking.
+    #
+    #  @param caminho_arquivo (str): Caminho do arquivo onde o ranking é armazenado. O valor padrão é 'ranking.txt'.
     def __init__(self, caminho_arquivo='ranking.txt'):
         self.pontuacoes = self.carregar(caminho_arquivo)
 
-    """ Adiciona nova pontuação ao ranking"""
+    ## Adiciona nova pontuação ao ranking.
+    #
+    #  Adiciona uma nova pontuação ao ranking e ordena as pontuações em ordem decrescente.
+    #
+    #  @param nome (str): Nome do jogador.
+    #  @param pontuacao (int): Pontuação do jogador. Deve ser um número inteiro.
+    #
+    #  @raises ValueError: Se a pontuação fornecida não for um número inteiro.
     def adicionar(self, nome, pontuacao):
-        """ Garantir que a pontuação seja um número inteiro"""
         if not isinstance(pontuacao, int):
             raise ValueError(f"Pontuação inválida: {pontuacao}. Deve ser um inteiro.")
 
         self.pontuacoes.append((nome, pontuacao))
     
-        """ Verificar consistência dos dados antes de ordenar"""
         for item in self.pontuacoes:
             if not isinstance(item[1], int):
                 raise ValueError(f"Pontuação inválida no ranking: {item}. Deve ser um inteiro.")
 
-        """ Ordenar a lista com segurança"""
         self.pontuacoes.sort(key=lambda x: x[1], reverse=True)
 
-    """ Salva o top 10 do ranking atualizado no arquivo ranking.txt"""
+    ## Salva o top 10 do ranking no arquivo ranking.txt.
+    #
+    #  O ranking é salvo no arquivo, com as 10 melhores pontuações.
     def salvar(self):
         with open("ranking.txt", "w") as f:
             for nome, pontuacao in self.pontuacoes[:10]:
                 f.write(f"{nome},{pontuacao}\n")
 
-    """ Carrega os dados do ranking salvis"""
+    ## Carrega os dados do ranking a partir de um arquivo.
+    #
+    #  Tenta abrir o arquivo especificado e carregar os dados do ranking. Caso o arquivo não seja encontrado,
+    #  um novo ranking vazio é criado.
+    #
+    #  @param caminho_arquivo (str): Caminho do arquivo onde o ranking é armazenado.
+    #
+    #  @returns list: Uma lista de tuplas contendo o nome e a pontuação dos jogadores, ordenada por pontuação.
+    #
+    #  @raises ValueError: Se o formato do arquivo for inválido ou se a pontuação não for um número inteiro.
     def carregar(self, caminho_arquivo):
-        """ tenta abrir o arquivo"""
         try:
             with open(caminho_arquivo, 'r') as arquivo:
-                """ inicia a lista de pontuações"""
                 pontuacoes = []
                 for linha in arquivo:
-                    """ Pega os dados do arquivo: nome e pontuação"""
                     dados = linha.strip().split(',')
                     if len(dados) != 2:
                         raise ValueError(f"Formato inválido no arquivo: {linha}")
 
                     nome = dados[0]
                     try:
-                        """ Converter pontuação para inteiro"""
                         pontuacao = int(dados[1]) 
                     except ValueError:
                         raise ValueError(f"Pontuação inválida no arquivo: {dados[1]}. Deve ser um número inteiro.")
 
                     pontuacoes.append((nome, pontuacao))
 
-                """ Ordenar o ranking ao carregar"""
                 pontuacoes.sort(key=lambda x: x[1], reverse=True)
                 return pontuacoes
         except FileNotFoundError:
-            """ Caso não encontrar o arquivo"""
             print(f"Arquivo {caminho_arquivo} não encontrado. Criando um novo ranking.")
             return []
 
-    """ Exibição do Ranking"""
+    ## Exibe o ranking atual.
+    #
+    #  Exibe as 10 melhores pontuações ou uma mensagem indicando que não há pontuações registradas.
     def exibir(self):
         if not self.pontuacoes:
             print("Nenhuma pontuação registrada ainda.")
@@ -572,7 +521,6 @@ class Ranking:
         input("Pressione Enter para continuar...")
 
 
-""" Execução da main"""
 if __name__ == "__main__":
     jogo = Jogo()
     jogo.menu()
