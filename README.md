@@ -42,8 +42,7 @@ pip install readchar
 Passos para Execução
 Clone o repositório:
 ```
-git clone [URL_DO_REPOSITORIO]
-cd [PASTA_DO_REPOSITORIO]
+git clone https://github.com/micaelvi0208/EP3_TECPROG.git
 Ative o ambiente virtual (caso esteja utilizando).
 ```
 
